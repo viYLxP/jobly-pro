@@ -1,0 +1,75 @@
+# Full stack: PostgreSQL + Mailpit (catches every email) + Spring Boot API + Angular (nginx).
+# Run: docker compose up --build, then open http://localhost:8084 (emails appear at http://localhost:8025).
+# النظام كامل: PostgreSQL + Mailpit (يلتقط كل إيميل) + Spring Boot API + Angular (nginx).
+# التشغيل: docker compose up --build، وافتح http://localhost:8084 (والإيميلات تظهر في http://localhost:8025).
+# Values come from .env (copy .env.example); the defaults below are for local demos only.
+# القيم تُقرأ من .env (انسخ .env.example)؛ والقيم الافتراضية تحت للتجربة المحلية فقط.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: jobly
+      POSTGRES_USER: ${DB_USERNAME:-jobly}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-jobly}
+    # Published on 127.0.0.1 only, so a DB tool on this machine can open it but the network cannot.
+    # منشورة على 127.0.0.1 فقط، عشان أداة قاعدة بيانات على نفس الجهاز تفتحها والشبكة ما توصلها.
+    ports:
+      - '127.0.0.1:${DB_PORT:-5444}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d jobly']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # A fake mail server for demos and tests: it accepts every email on 1025 and shows it on 8025.
+  # In production remove it and set the MAIL_* variables of the backend to a real SMTP provider.
+  # خادم بريد وهمي للتجربة والاختبارات: يستقبل كل إيميل على 1025 ويعرضه على 8025.
+  # في الإنتاج احذفه ووجّه متغيرات MAIL_* في الباكند لمزوّد SMTP حقيقي.
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - '127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025'
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/jobly
+      DB_USERNAME: ${DB_USERNAME:-jobly}
+      DB_PASSWORD: ${DB_PASSWORD:-jobly}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (at least 32 characters)}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@12345}
+      CANDIDATE_PASSWORD: ${CANDIDATE_PASSWORD:-Candidate@12345}
+      EMPLOYER_PASSWORD: ${EMPLOYER_PASSWORD:-Employer@12345}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_AUTH: ${MAIL_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+      MAIL_FROM: ${MAIL_FROM:-Jobly <no-reply@jobly.example>}
+      # Where the links in emails point (the address people use to open the app).
+      # وين تشير الروابط في الإيميلات (العنوان اللي يفتح فيه الناس التطبيق).
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8084}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8084}
+      # Public account endpoints allow this many attempts per visitor IP per 10 minutes.
+      # روابط الحسابات العامة تسمح بهذا العدد من المحاولات لكل IP زائر كل 10 دقائق.
+      RATE_LIMIT_ATTEMPTS: ${RATE_LIMIT_ATTEMPTS:-30}
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '${APP_PORT:-8084}:80'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  db-data:

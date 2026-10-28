@@ -150,7 +150,7 @@ export const en = {
     keyword: 'Job title or keyword',
     city: 'City',
     type: 'Job type',
-    count: '{count} jobs found',
+    count: 'Jobs found: {count}',
     posted: 'Posted {date}',
     salary: '{min} – {max} / month',
     salaryFrom: 'From {min} / month',
