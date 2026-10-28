@@ -1,0 +1,19 @@
+jobly:
+  seed:
+    enabled: false
+  jwt:
+    secret: test-secret-that-is-long-enough-for-hs256-0123
+  # High limit so normal tests never hit it; RateLimitTest checks the limiter on its own.
+  # حد عالي حتى ما توصله الاختبارات العادية؛ واختبار RateLimitTest يفحص المحدّد لحاله.
+  rate-limit:
+    attempts: 1000
+  public-url: http://localhost:4200
+  mail:
+    # Tests decide exactly when the outbox runs (OutboxProcessor.processDue), so the background timer is off.
+    # الاختبارات تقرر بالضبط متى يشتغل الطابور (OutboxProcessor.processDue)، فمؤقت الخلفية مطفي.
+    scheduler-enabled: false
+spring:
+  mail:
+    # GreenMail's test SMTP server (see IntegrationTest). / خادم SMTP التجريبي من GreenMail.
+    host: localhost
+    port: 3025

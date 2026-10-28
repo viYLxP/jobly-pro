@@ -1,0 +1,104 @@
+spring:
+  application:
+    name: jobly-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/jobly}
+    username: ${DB_USERNAME:jobly}
+    password: ${DB_PASSWORD:jobly}
+  jackson:
+    deserialization:
+      # Treat a missing primitive field as its default instead of rejecting the whole request.
+      # نعتبر الحقل الأساسي الناقص بقيمته الافتراضية بدل رفض الطلب كامل.
+      fail-on-null-for-primitives: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  data:
+    web:
+      pageable:
+        # Caps ?size= so a client cannot request millions of rows in one call.
+        # يحدّ ?size= حتى ما يطلب العميل ملايين الصفوف في طلب واحد.
+        max-page-size: 100
+  # The SMTP server. In development this is Mailpit (docker compose), which catches every email and shows it at
+  # http://localhost:8025. In production point these at a real provider.
+  # خادم SMTP. أثناء التطوير هو Mailpit (docker compose) اللي يلتقط كل إيميل ويعرضه على http://localhost:8025.
+  # في الإنتاج وجّه هذي الإعدادات لمزوّد حقيقي.
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+          connectiontimeout: 5000
+          timeout: 10000
+          writetimeout: 10000
+
+server:
+  port: ${PORT:8080}
+  # Trust X-Forwarded-For only from internal proxies, so the rate limiter sees the real visitor IP and a visitor
+  # cannot fake it by sending the header directly.
+  # نثق بـ X-Forwarded-For فقط من البروكسي الداخلي، فيشوف محدّد الطلبات عنوان الزائر الحقيقي
+  # وما يقدر الزائر يزوّره بإرسال الترويسة بنفسه.
+  forward-headers-strategy: native
+  error:
+    include-message: never
+
+jobly:
+  jwt:
+    # Must be at least 32 characters. Always override JWT_SECRET outside local development.
+    secret: ${JWT_SECRET:local-dev-secret-change-me-please-0123456789}
+    expiration: ${JWT_EXPIRATION:8h}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200}
+  time-zone: Asia/Riyadh
+  # Email links point here (the Angular app).
+  # روابط الإيميل تشير هنا (تطبيق Angular).
+  public-url: ${PUBLIC_URL:http://localhost:4200}
+  seed:
+    # Creates demo accounts on an empty database.
+    enabled: ${SEED_DEMO_DATA:true}
+    admin-password: ${ADMIN_PASSWORD:Admin@12345}
+    candidate-password: ${CANDIDATE_PASSWORD:Candidate@12345}
+    employer-password: ${EMPLOYER_PASSWORD:Employer@12345}
+  rate-limit:
+    window: 10m
+    attempts: ${RATE_LIMIT_ATTEMPTS:30}
+  auth:
+    verify-validity: ${VERIFY_VALIDITY:24h}
+    reset-validity: ${RESET_VALIDITY:1h}
+    resend-cooldown: ${RESEND_COOLDOWN:60s}
+    daily-limit: ${EMAIL_DAILY_LIMIT:5}
+  mail:
+    from: ${MAIL_FROM:Jobly <no-reply@jobly.example>}
+    scheduler-enabled: true
+    poll-interval: PT5S
+    batch-size: 20
+    max-attempts: 5
+    retry-delay: 30s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    # A mail server that is briefly down must not make the whole API look unhealthy; the outbox retries anyway.
+    # خادم بريد واقف لحظة ما لازم يخلي الـ API كله يبان معطّل؛ والطابور يعيد المحاولة بكل الأحوال.
+    mail:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
