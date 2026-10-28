@@ -100,6 +100,16 @@ public class EmailOutbox {
         }
     }
 
+    /**
+     * Puts a FAILED email back in the queue for another round of attempts.
+     * يرجّع إيميل فاشل للطابور لجولة محاولات جديدة.
+     */
+    public void retry(Instant now) {
+        this.status = OutboxStatus.PENDING;
+        this.attempts = 0;
+        this.nextAttemptAt = now;
+    }
+
     public Long getId() {
         return id;
     }
@@ -122,6 +132,18 @@ public class EmailOutbox {
 
     public int getAttempts() {
         return attempts;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getSentAt() {
+        return sentAt;
     }
 
     public Map<String, String> getParams() {

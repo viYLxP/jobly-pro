@@ -42,6 +42,8 @@ class DemoDataSeederTest extends IntegrationTest {
                 .andExpect(jsonPath("$.content[0].status").value("REVIEWING"))
                 .andExpect(jsonPath("$.content[0].timeline.length()").value(2));
         getAs(candidate, "/api/candidate/profile").andExpect(jsonPath("$.headline").value("Java developer"));
+        getAs(candidate, "/api/candidate/alerts").andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].keyword").value("java"));
     }
 
     @Test

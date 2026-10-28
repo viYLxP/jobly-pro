@@ -20,5 +20,7 @@ public enum EmailTemplate {
     // To the employer, when someone applies to their job. / لصاحب العمل، لما أحد يقدّم على وظيفته.
     NEW_APPLICANT,
     // To the candidate, every time the employer moves the application along. / للمرشح، كل ما حرّك صاحب العمل الطلب.
-    STATUS_CHANGED
+    STATUS_CHANGED,
+    // To a candidate whose saved search matches a newly published job. / لمرشح بحثه المحفوظ يطابق وظيفة نُشرت للتو.
+    JOB_ALERT
 }

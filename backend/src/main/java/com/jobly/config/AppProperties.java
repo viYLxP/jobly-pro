@@ -34,7 +34,8 @@ public record AppProperties(
         @Valid @NotNull Seed seed,
         @Valid @NotNull RateLimit rateLimit,
         @Valid @NotNull Auth auth,
-        @Valid @NotNull Mail mail) {
+        @Valid @NotNull Mail mail,
+        @Valid @NotNull Alerts alerts) {
 
     /**
      * JWT signing settings.
@@ -95,5 +96,15 @@ public record AppProperties(
      */
     public record Mail(@NotBlank String from, boolean schedulerEnabled, @NotNull Duration pollInterval,
                        @Min(1) int batchSize, @Min(1) int maxAttempts, @NotNull Duration retryDelay) {
+    }
+
+    /**
+     * Job alert limits.
+     * حدود تنبيهات الوظائف.
+     *
+     * @param maxPerCandidate how many alerts one candidate may save / كم تنبيه يقدر المرشح الواحد يحفظ
+     * @param dailyLimit      most alert emails one candidate gets in 24 hours, however many jobs match / أقصى عدد إيميلات تنبيه لمرشح في 24 ساعة مهما تطابقت الوظائف
+     */
+    public record Alerts(@Min(1) int maxPerCandidate, @Min(1) int dailyLimit) {
     }
 }

@@ -121,6 +121,15 @@ public class AppUser {
         this.status = UserStatus.SUSPENDED;
     }
 
+    /**
+     * Lifts a suspension. An account that never verified its email goes back to PENDING, not ACTIVE, so a
+     * suspension can never be used to skip email verification.
+     * يرفع الإيقاف. الحساب اللي ما فعّل إيميله يرجع PENDING وليس ACTIVE، فالإيقاف ما يصير طريق لتخطي تفعيل الإيميل.
+     */
+    public void unsuspend() {
+        this.status = verifiedAt != null ? UserStatus.ACTIVE : UserStatus.PENDING;
+    }
+
     public Long getId() {
         return id;
     }

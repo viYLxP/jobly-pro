@@ -43,6 +43,10 @@ public enum ErrorCode {
     INVALID_STATUS(HttpStatus.CONFLICT),
     // The application cannot move from its current status to the requested one. / الطلب ما ينتقل من حالته الحالية للمطلوبة.
     INVALID_TRANSITION(HttpStatus.CONFLICT),
+    // The candidate already has the maximum number of job alerts. / المرشح وصل الحد الأعلى من تنبيهات الوظائف.
+    ALERT_LIMIT(HttpStatus.CONFLICT),
+    // An admin cannot suspend their own account, so the system is never left without one. / الأدمن ما يقدر يوقف حسابه، حتى ما يبقى النظام بدون أدمن.
+    CANNOT_MODIFY_SELF(HttpStatus.CONFLICT),
     // Someone else changed the same record meanwhile (optimistic locking).
     // شخص آخر عدّل نفس السجل في نفس الوقت (Optimistic Locking).
     CONCURRENT_UPDATE(HttpStatus.CONFLICT),

@@ -34,7 +34,8 @@ public class PublicRateLimitFilter extends OncePerRequestFilter {
             "/api/auth/verify-email",
             "/api/auth/resend-verification",
             "/api/auth/forgot-password",
-            "/api/auth/reset-password");
+            "/api/auth/reset-password",
+            "/api/public/unsubscribe");
 
     private final RateLimiter attempts;
 

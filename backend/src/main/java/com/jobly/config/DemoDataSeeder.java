@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jobly.alert.JobAlert;
+import com.jobly.alert.JobAlertRepository;
 import com.jobly.application.ApplicationEvent;
 import com.jobly.application.ApplicationEventRepository;
 import com.jobly.application.ApplicationStatus;
@@ -46,10 +48,12 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final JobApplicationRepository applications;
     private final ApplicationEventRepository events;
     private final CandidateProfileRepository profiles;
+    private final JobAlertRepository alerts;
 
     public DemoDataSeeder(AppProperties properties, AppUserRepository users, PasswordEncoder encoder,
                           JobRepository jobs, JobApplicationRepository applications,
-                          ApplicationEventRepository events, CandidateProfileRepository profiles) {
+                          ApplicationEventRepository events, CandidateProfileRepository profiles,
+                          JobAlertRepository alerts) {
         this.properties = properties;
         this.users = users;
         this.encoder = encoder;
@@ -57,6 +61,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.applications = applications;
         this.events = events;
         this.profiles = profiles;
+        this.alerts = alerts;
     }
 
     @Override
@@ -83,6 +88,8 @@ public class DemoDataSeeder implements ApplicationRunner {
         profiles.save(newProfile(candidate.getId()));
         List<Job> posted = seedJobs(najd, redSea);
         seedApplication(candidate, posted.get(0));
+        // A saved search, so the alerts page shows a real example. / بحث محفوظ، حتى تعرض صفحة التنبيهات مثال حقيقي.
+        alerts.save(new JobAlert(candidate, "java", "Riyadh", null));
     }
 
     private static CandidateProfile newProfile(Long userId) {

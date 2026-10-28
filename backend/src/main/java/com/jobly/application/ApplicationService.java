@@ -31,6 +31,7 @@ import com.jobly.profile.CandidateProfile;
 import com.jobly.profile.CandidateProfileRepository;
 import com.jobly.user.AppUser;
 import com.jobly.user.AppUserRepository;
+import com.jobly.user.UserStatus;
 
 /**
  * Applying to jobs, following an application, and the employer's review of applicants.
@@ -75,6 +76,7 @@ public class ApplicationService {
     public MyApplication apply(long candidateId, long jobId, String coverNote) {
         Job job = jobs.findWithEmployerById(jobId)
                 .filter(j -> j.getStatus() != JobStatus.DRAFT)
+                .filter(j -> j.getEmployer().getStatus() == UserStatus.ACTIVE)
                 .orElseThrow(() -> ApiException.notFound("job", jobId));
         if (job.getStatus() == JobStatus.CLOSED) {
             throw new ApiException(ErrorCode.JOB_CLOSED);

@@ -248,6 +248,15 @@ public abstract class IntegrationTest {
         return matcher.group(1);
     }
 
+    /** The signed token from the "stop all my job alerts" link. / الرمز الموقّع من رابط "إيقاف كل تنبيهاتي". */
+    protected static String unsubscribeTokenIn(MimeMessage message) throws Exception {
+        Matcher matcher = Pattern.compile("/unsubscribe#([A-Za-z0-9_.-]+)").matcher(partOf(message, "text/plain"));
+        if (!matcher.find()) {
+            throw new AssertionError("No unsubscribe link found in the email");
+        }
+        return matcher.group(1);
+    }
+
     protected static String plainText(MimeMessage message) throws Exception {
         return partOf(message, "text/plain");
     }

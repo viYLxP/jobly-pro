@@ -56,6 +56,8 @@ public class EmailRenderer {
         String button = optionalText(prefix + "button", locale);
         String link = params.get("link");
         String footer = text("mail.footer", locale);
+        // Alert emails carry a one-click "stop alerts" link in the footer. / إيميلات التنبيه فيها رابط "إيقاف التنبيهات" بنقرة وحدة في الذيل.
+        String unsubscribe = params.get("unsubscribe");
         String brand = text("mail.brand", locale);
 
         StringBuilder plain = new StringBuilder(title).append("\n\n").append(intro).append("\n");
@@ -63,6 +65,9 @@ public class EmailRenderer {
             plain.append("\n").append(button).append(": ").append(link).append("\n");
         }
         plain.append("\n").append(outro).append("\n\n--\n").append(brand).append(" - ").append(footer).append("\n");
+        if (unsubscribe != null) {
+            plain.append(text("mail.unsubscribe", locale)).append(": ").append(unsubscribe).append("\n");
+        }
 
         String align = rtl ? "right" : "left";
         StringBuilder html = new StringBuilder();
@@ -90,7 +95,12 @@ public class EmailRenderer {
         html.append("<p style=\"line-height:1.7;margin:0\">").append(fill(text(prefix + "outro", locale), params, true))
                 .append("</p></div>")
                 .append("<div style=\"padding:14px 24px;font-size:12px;color:#5b6784;background:#f3f5f9\">")
-                .append(esc(footer)).append("</div></div></body></html>");
+                .append(esc(footer));
+        if (unsubscribe != null) {
+            html.append(" <a href=\"").append(esc(unsubscribe)).append("\" style=\"color:#5b6784\">")
+                    .append(esc(text("mail.unsubscribe", locale))).append("</a>");
+        }
+        html.append("</div></div></body></html>");
 
         return new RenderedEmail(subject, plain.toString(), html.toString());
     }

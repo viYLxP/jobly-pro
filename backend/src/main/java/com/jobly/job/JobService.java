@@ -8,6 +8,7 @@ import java.util.Map;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import com.jobly.job.JobDtos.EmployerJob;
 import com.jobly.job.JobDtos.JobRequest;
 import com.jobly.user.AppUser;
 import com.jobly.user.AppUserRepository;
+import com.jobly.user.UserStatus;
 
 /**
  * Public job search, and the employer's own job management.
@@ -44,11 +46,14 @@ public class JobService {
     private final JobRepository jobs;
     private final AppUserRepository users;
     private final JobApplicationRepository applications;
+    private final ApplicationEventPublisher events;
 
-    public JobService(JobRepository jobs, AppUserRepository users, JobApplicationRepository applications) {
+    public JobService(JobRepository jobs, AppUserRepository users, JobApplicationRepository applications,
+                      ApplicationEventPublisher events) {
         this.jobs = jobs;
         this.users = users;
         this.applications = applications;
+        this.events = events;
     }
 
     // ---------------------------------------------------------------- public
@@ -70,6 +75,9 @@ public class JobService {
             From<?, ?> employer = dataQuery ? (From<?, ?>) root.fetch("employer") : root.join("employer");
             List<Predicate> all = new java.util.ArrayList<>();
             all.add(cb.equal(root.get("status"), JobStatus.PUBLISHED));
+            // A suspended employer's jobs disappear from the public board.
+            // وظائف صاحب العمل الموقوف تختفي من اللوحة العامة.
+            all.add(cb.equal(employer.get("status"), UserStatus.ACTIVE));
             if (type != null) {
                 all.add(cb.equal(root.get("type"), type));
             }
@@ -104,6 +112,7 @@ public class JobService {
     public Job getPublic(long id) {
         return jobs.findWithEmployerById(id)
                 .filter(job -> job.getStatus() != JobStatus.DRAFT)
+                .filter(job -> job.getEmployer().getStatus() == UserStatus.ACTIVE)
                 .orElseThrow(() -> ApiException.notFound("job", id));
     }
 
@@ -157,6 +166,8 @@ public class JobService {
             throw new ApiException(ErrorCode.INVALID_STATUS);
         }
         job.publish(Instant.now());
+        // Listeners (job alerts) run now, inside this transaction. / المستمعون (تنبيهات الوظائف) يشتغلون الحين داخل هذي العملية.
+        events.publishEvent(new JobPublishedEvent(job));
         return EmployerJob.of(job, 0);
     }
 

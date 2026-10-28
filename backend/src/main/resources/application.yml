@@ -80,6 +80,9 @@ jobly:
     reset-validity: ${RESET_VALIDITY:1h}
     resend-cooldown: ${RESEND_COOLDOWN:60s}
     daily-limit: ${EMAIL_DAILY_LIMIT:5}
+  alerts:
+    max-per-candidate: 5
+    daily-limit: ${ALERT_DAILY_LIMIT:5}
   mail:
     from: ${MAIL_FROM:Jobly <no-reply@jobly.example>}
     scheduler-enabled: true

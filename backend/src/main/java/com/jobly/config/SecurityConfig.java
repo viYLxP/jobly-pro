@@ -75,7 +75,7 @@ public class SecurityConfig {
                         // روابط الحسابات العامة، مكتوبة وحدة وحدة حتى ما يصير رابط جديد عام بالغلط.
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/verify-email",
                                 "/api/auth/resend-verification", "/api/auth/login", "/api/auth/forgot-password",
-                                "/api/auth/reset-password").permitAll()
+                                "/api/auth/reset-password", "/api/public/unsubscribe").permitAll()
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // "Who am I" works for every signed-in account, so the UI knows where to send it.
                         // "مين أنا" يشتغل لكل حساب مسجّل، حتى الواجهة تعرف وين توديه.
@@ -87,6 +87,7 @@ public class SecurityConfig {
                         // كل دور له منطقته، فرمز المرشح ما يوصل لبيانات صاحب العمل والعكس.
                         .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
                         .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Everything else is closed until a later step opens it with an explicit rule.
                         // كل شي ثاني مقفل لين تفتحه خطوة لاحقة بقاعدة صريحة.
                         .anyRequest().denyAll())
