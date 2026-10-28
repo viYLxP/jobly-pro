@@ -35,6 +35,14 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST),
     // Too many requests from the same address on a public endpoint. / طلبات كثيرة من نفس العنوان على رابط عام.
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS),
+    // The job is not taking applications any more (closed). / الوظيفة ما تستقبل طلبات (مغلقة).
+    JOB_CLOSED(HttpStatus.CONFLICT),
+    // This candidate already applied to this job. / هذا المرشح قدّم على هذي الوظيفة من قبل.
+    ALREADY_APPLIED(HttpStatus.CONFLICT),
+    // The record's current state does not allow this action (e.g. editing a closed job). / حالة السجل الحالية ما تسمح بالعملية (مثل تعديل وظيفة مغلقة).
+    INVALID_STATUS(HttpStatus.CONFLICT),
+    // The application cannot move from its current status to the requested one. / الطلب ما ينتقل من حالته الحالية للمطلوبة.
+    INVALID_TRANSITION(HttpStatus.CONFLICT),
     // Someone else changed the same record meanwhile (optimistic locking).
     // شخص آخر عدّل نفس السجل في نفس الوقت (Optimistic Locking).
     CONCURRENT_UPDATE(HttpStatus.CONFLICT),

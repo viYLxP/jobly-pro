@@ -14,5 +14,11 @@ public enum EmailTemplate {
     // Security notice after a password change. / تنبيه أمني بعد تغيير كلمة المرور.
     PASSWORD_CHANGED,
     // Someone registered with an email that already has an account. / أحدهم سجّل بإيميل عنده حساب فعلًا.
-    ACCOUNT_EXISTS
+    ACCOUNT_EXISTS,
+    // To the candidate, right after they apply. / للمرشح، مباشرة بعد التقديم.
+    APPLICATION_RECEIVED,
+    // To the employer, when someone applies to their job. / لصاحب العمل، لما أحد يقدّم على وظيفته.
+    NEW_APPLICANT,
+    // To the candidate, every time the employer moves the application along. / للمرشح، كل ما حرّك صاحب العمل الطلب.
+    STATUS_CHANGED
 }

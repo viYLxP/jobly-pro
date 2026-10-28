@@ -1,7 +1,10 @@
 package com.jobly.support;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -30,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.jobly.mail.OutboxProcessor;
@@ -130,7 +134,71 @@ public abstract class IntegrationTest {
         return mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token));
     }
 
+    // ----- Signed-in requests / طلبات بعد تسجيل الدخول -----
+
+    protected ResultActions getAs(String token, String url) throws Exception {
+        return mvc.perform(withToken(get(url), token));
+    }
+
+    protected ResultActions postAs(String token, String url, String json) throws Exception {
+        return mvc.perform(withToken(post(url), token).contentType(MediaType.APPLICATION_JSON).content(json));
+    }
+
+    protected ResultActions putAs(String token, String url, String json) throws Exception {
+        return mvc.perform(withToken(put(url), token).contentType(MediaType.APPLICATION_JSON).content(json));
+    }
+
+    protected ResultActions patchAs(String token, String url, String json) throws Exception {
+        return mvc.perform(withToken(patch(url), token).contentType(MediaType.APPLICATION_JSON).content(json));
+    }
+
+    protected ResultActions deleteAs(String token, String url) throws Exception {
+        return mvc.perform(withToken(delete(url), token));
+    }
+
+    private static MockHttpServletRequestBuilder withToken(MockHttpServletRequestBuilder request, String token) {
+        return token == null ? request : request.header("Authorization", "Bearer " + token);
+    }
+
+    protected static String jobJson(String title, String city, String type) {
+        return """
+                {"title":"%s","description":"A real description of the work, long enough to read.","city":"%s","type":"%s","salaryMin":8000,"salaryMax":12000}
+                """.formatted(title, city, type);
+    }
+
+    protected static long idOf(ResultActions result) throws Exception {
+        return ((Number) JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.id")).longValue();
+    }
+
     // ----- Data helpers / دوال البيانات -----
+
+    /** An active account with its own name and email language. / حساب مفعّل باسم ولغة إيميل محددين. */
+    protected AppUser activeUser(String email, String password, Role role, String fullName, String language) {
+        return users.save(new AppUser(email, passwordEncoder.encode(password), fullName, role, UserStatus.ACTIVE,
+                language, role == Role.EMPLOYER ? fullName + " Co" : null));
+    }
+
+    protected String employerToken(String email) throws Exception {
+        activeUser(email, PASSWORD, Role.EMPLOYER);
+        return login(email, PASSWORD);
+    }
+
+    protected String candidateToken(String email) throws Exception {
+        activeUser(email, PASSWORD, Role.CANDIDATE);
+        return login(email, PASSWORD);
+    }
+
+    /** Creates a draft job through the API and returns its id. / ينشئ وظيفة مسودة عبر الـ API ويرجّع رقمها. */
+    protected long draftJob(String employerToken, String title, String city, String type) throws Exception {
+        return idOf(postAs(employerToken, "/api/employer/jobs", jobJson(title, city, type))
+                .andExpect(status().isCreated()));
+    }
+
+    protected long publishedJob(String employerToken, String title, String city, String type) throws Exception {
+        long id = draftJob(employerToken, title, city, type);
+        postAs(employerToken, "/api/employer/jobs/" + id + "/publish", "").andExpect(status().isOk());
+        return id;
+    }
 
     /** An already verified account, as if the person had clicked the email link. / حساب مفعّل جاهز. */
     protected AppUser activeUser(String email, String password, Role role) {

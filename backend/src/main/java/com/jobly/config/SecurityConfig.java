@@ -80,6 +80,13 @@ public class SecurityConfig {
                         // "Who am I" works for every signed-in account, so the UI knows where to send it.
                         // "مين أنا" يشتغل لكل حساب مسجّل، حتى الواجهة تعرف وين توديه.
                         .requestMatchers("/api/auth/me").authenticated()
+                        // Anyone, signed in or not, may search and read jobs.
+                        // أي أحد، مسجّل أو لا، يقدر يبحث ويقرأ الوظائف.
+                        .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/*").permitAll()
+                        // Each role gets its own area, so a candidate token can never reach employer data and back.
+                        // كل دور له منطقته، فرمز المرشح ما يوصل لبيانات صاحب العمل والعكس.
+                        .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
+                        .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
                         // Everything else is closed until a later step opens it with an explicit rule.
                         // كل شي ثاني مقفل لين تفتحه خطوة لاحقة بقاعدة صريحة.
                         .anyRequest().denyAll())

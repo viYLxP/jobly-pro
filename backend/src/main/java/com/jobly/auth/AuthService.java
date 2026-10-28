@@ -14,6 +14,7 @@ import com.jobly.auth.AuthDtos.LoginResponse;
 import com.jobly.auth.AuthDtos.RegisterRequest;
 import com.jobly.common.ApiException;
 import com.jobly.common.ErrorCode;
+import com.jobly.common.Links;
 import com.jobly.common.SecureTokens;
 import com.jobly.config.AppProperties;
 import com.jobly.mail.EmailTemplate;
@@ -44,6 +45,7 @@ public class AuthService {
     private final OutboxService outbox;
     private final TokenService jwt;
     private final AppProperties props;
+    private final Links links;
 
     // A hash of a throwaway password. When the email is unknown we still run a BCrypt check against it, so a
     // login for an unknown email takes as long as a wrong password and timing reveals nothing.
@@ -52,13 +54,14 @@ public class AuthService {
     private final String dummyHash;
 
     public AuthService(AppUserRepository users, EmailTokenRepository tokens, PasswordEncoder encoder,
-                       OutboxService outbox, TokenService jwt, AppProperties props) {
+                       OutboxService outbox, TokenService jwt, AppProperties props, Links links) {
         this.users = users;
         this.tokens = tokens;
         this.encoder = encoder;
         this.outbox = outbox;
         this.jwt = jwt;
         this.props = props;
+        this.links = links;
         this.dummyHash = encoder.encode("not-a-real-password-1");
     }
 
@@ -269,11 +272,8 @@ public class AuthService {
         return raw;
     }
 
-    // The part after "#" never reaches web servers or their logs, so the secret stays in the browser.
-    // الجزء بعد "#" ما يوصل لخوادم الويب ولا سجلاتها، فيبقى السر في المتصفح.
     private String url(String path) {
-        String base = props.publicUrl();
-        return (base.endsWith("/") ? base.substring(0, base.length() - 1) : base) + path;
+        return links.url(path);
     }
 
     static String normalize(String email) {

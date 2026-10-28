@@ -33,4 +33,13 @@ public record PageResponse<T>(List<T> content, int page, int size, long totalEle
                 page.getTotalElements(),
                 page.getTotalPages());
     }
+
+    /**
+     * Wraps content that was already mapped (for example when the mapping needed extra data fetched in bulk).
+     * يلفّ محتوى سبق تحويله (مثلًا لما التحويل احتاج بيانات إضافية انجلبت دفعة وحدة).
+     */
+    public static <E, T> PageResponse<T> of(Page<E> page, List<T> content) {
+        return new PageResponse<>(content, page.getNumber(), page.getSize(), page.getTotalElements(),
+                page.getTotalPages());
+    }
 }

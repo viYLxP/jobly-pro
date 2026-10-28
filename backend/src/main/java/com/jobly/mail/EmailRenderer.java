@@ -35,10 +35,17 @@ public class EmailRenderer {
     public record RenderedEmail(String subject, String text, String html) {
     }
 
-    public RenderedEmail render(EmailTemplate template, String language, Map<String, String> params) {
+    public RenderedEmail render(EmailTemplate template, String language, Map<String, String> rawParams) {
         Locale locale = Locale.forLanguageTag("ar".equals(language) ? "ar" : "en");
         boolean rtl = "ar".equals(language);
         String prefix = "mail." + template.name() + ".";
+
+        // "status" arrives as a code such as REVIEWING; the reader gets it in their language.
+        // "status" يصل كرمز مثل REVIEWING؛ والقارئ ياخذه بلغته.
+        Map<String, String> params = new java.util.HashMap<>(rawParams);
+        if (params.containsKey("status")) {
+            params.put("status", text("mail.status." + params.get("status"), locale));
+        }
 
         // The subject goes into an email header, so line breaks are removed (header injection).
         // العنوان يدخل في ترويسة الإيميل، فنشيل أسطر جديدة منه (حماية من حقن الترويسات).
